@@ -20,9 +20,13 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final TokenDenylist tokenDenylist;
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public JwtAuthenticationFilter(
+            JwtService jwtService,
+            TokenDenylist tokenDenylist) {
         this.jwtService = jwtService;
+        this.tokenDenylist = tokenDenylist;
     }
 
     @Override
@@ -39,6 +43,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             try {
                 Claims claims = jwtService.parseToken(token);
+
+                String jti = claims.getId();
+
+                if (jti == null || tokenDenylist.isRevoked(jti)) {
+                    SecurityContextHolder.clearContext();
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write(
+                            "{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Token is invalid or revoked\"}"
+                    );
+                    return;
+                }
 
                 String email = claims.getSubject();
                 String role = claims.get("role", String.class);
@@ -67,4 +83,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-
