@@ -245,62 +245,69 @@ Complete **one review entry per slice** before moving to the next.
 
 ---
 
+
 ## Slice 5 — Logout (S5) *(stretch)*
 
 ### A. Bucket Check
 
 | File / Method | Tag | In Allowed List? |
 |---|---|---|
-| | | |
+| `AuthController.java` — logout endpoint | Modified | Yes, if listed in the S5 instructions |
+| `JwtAuthenticationFilter.java` — denylist validation | Modified | Yes, if listed in the S5 instructions |
+| `TokenDenylist.java` — in-memory denylist | Created | Yes, if listed in the S5 instructions |
 
 ### B. Contract Check
 
 | Check | Pass / Fail |
 |---|---|
-| `POST /api/auth/logout` returns **204** | |
-| Same token returns **401** after logout | |
-| Fresh login after logout returns a new working token | |
+| `POST /api/auth/logout` returns **204** | Pass — manually verified |
+| Same token returns **401** after logout | Pass — manually verified |
+| Fresh login after logout returns a new working token | Not yet verified |
 
 ### D. Security Specifics
 
 | Check | Pass / Fail |
 |---|---|
-| Logout adds entry to server-side denylist (not just tells client to delete token) | |
-| Denylist keyed by **`jti`**, not email | |
-| Map is `ConcurrentHashMap` (thread-safe) | |
-| Logout endpoint is NOT under `permitAll` | |
-| Filter checks the denylist and treats denylisted jti as invalid | |
-| (Bonus) Expired entries are removed from the map | |
+| Logout adds entry to server-side denylist | Pass — revoked token rejected after logout |
+| Denylist keyed by `jti`, not email | Pass — implementation reviewed |
+| Map is `ConcurrentHashMap` (thread-safe) | Pass — implementation reviewed |
+| Logout endpoint is NOT under `permitAll` | Pass — security configuration reviewed |
+| Filter checks the denylist | Pass — manual request returned 401 |
+| (Bonus) Expired entries are removed from the map | Pass — `cleanExpired()` implemented |
 
 ### E. Understanding Questions
 
 1. Why does logout need server-side state if JWT is "stateless"?
 
-   > **Your answer:**
+   > Write your explanation in your own words.
 
 2. What happens to the denylist when the server restarts? What if there are two server instances?
 
-   > **Your answer:**
+   > Write your explanation in your own words.
 
 3. Why store the expiry time with each jti?
 
-   > **Your answer:**
+   > Write your explanation in your own words.
 
 ### F. Decision
 
 | File | Decision | Reason |
 |---|---|---|
-| | | |
+| `AuthController.java` | Modified | Added the logout endpoint |
+| `JwtAuthenticationFilter.java` | Modified | Rejects revoked JWTs |
+| `TokenDenylist.java` | Created | Stores revoked token IDs and their expiration times |
 
 ---
 
 ## No-AI Change Tasks
 
+Complete this section independently after closing AI tools, as required by the lab.
+
 **Files changed:**
 
 | File | What changed and why |
 |---|---|
-| | |
+| Fill in after completing the required changes | |
 
 **Explanation (your own words):**
 
