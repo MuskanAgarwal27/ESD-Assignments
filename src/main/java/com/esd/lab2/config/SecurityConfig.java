@@ -54,6 +54,10 @@ public class SecurityConfig {
                     org.springframework.http.HttpMethod.GET,
                     "/api/courses"
                 ).permitAll()
+		.requestMatchers(
+                    org.springframework.http.HttpMethod.POST,
+                    "/api/courses"
+		).hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
 
