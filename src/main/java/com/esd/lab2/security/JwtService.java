@@ -1,5 +1,6 @@
 package com.esd.lab2.security;
-
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import com.esd.lab2.entity.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -37,5 +38,12 @@ public class JwtService {
                 .signWith(key)
                 .compact();
     }
+    public Claims parseToken(String token) {
+    return Jwts.parser()
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
+}
 
 }

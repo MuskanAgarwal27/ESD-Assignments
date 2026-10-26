@@ -1,4 +1,9 @@
+
 package com.esd.lab2.config;
+
+import com.esd.lab2.security.JsonAccessDeniedHandler;
+import com.esd.lab2.security.JsonAuthenticationEntryPoint;
+import com.esd.lab2.security.JwtAuthenticationFilter;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,14 +13,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * TEMPORARY SecurityConfig — permits all requests so Slices 1 and 2 work
- * without authentication in place.
- *
- * NOTE: Replace the filterChain bean in Slice 3.
- *       Do NOT touch this file before Slice 3.
- */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -25,13 +24,44 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // TEMPORARY: replaced in Slice 3
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(
+            HttpSecurity http,
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            JsonAuthenticationEntryPoint authenticationEntryPoint,
+            JsonAccessDeniedHandler accessDeniedHandler
+    ) throws Exception {
+
         http
             .csrf(csrf -> csrf.disable())
-            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler)
+            )
+
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    org.springframework.http.HttpMethod.POST,
+                    "/api/auth/signup",
+                    "/api/auth/login"
+                ).permitAll()
+                .requestMatchers(
+                    org.springframework.http.HttpMethod.GET,
+                    "/api/courses"
+                ).permitAll()
+                .anyRequest().authenticated()
+            )
+
+            .addFilterBefore(
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class
+            );
+
         return http.build();
     }
 }
