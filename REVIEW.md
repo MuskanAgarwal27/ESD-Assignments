@@ -1,85 +1,77 @@
 # REVIEW.md — AI Output Review Log
 
-Complete **one review entry per slice** before moving to the next.  
-
+Complete **one review entry per slice** before moving to the next.
 
 ---
 
 ## Slice 1 — Signup (S1)
 
 ### A. Bucket Check
-List every class and method the AI produced. Tag each one:
-`Controller` / `Service` / `Repository` / `DTO` / `Security` / `Config` / `Exception`
 
 | File / Method | Tag | In Allowed List? |
 |---|---|---|
-| `AuthController.signup()` | Controller | Verify against assignment allowed list |
-| `AuthService.signup()` | Service | Verify against assignment allowed list |
-| `SignupRequest` | DTO | Verify against assignment allowed list |
-| `UserResponse` | DTO | Verify against assignment allowed list |
+| `AuthController.signup()` | Controller | Yes |
+| `AuthService.signup()` | Service | Yes |
+| `UserRepository` methods used for signup | Repository | Yes |
+| `SignupRequest` | DTO | Yes |
+| `SignupResponse` | DTO | Yes |
+| `PasswordEncoder` usage | Security | Yes |
+| `DuplicateResourceException` | Exception | Yes |
+| `GlobalExceptionHandler` (existing class) | Exception | Verify existing allowed-list status |
 
-> Verify each file against the assignment's allowed list before final acceptance.
+**Important:** Anything not in the allowed list → reject and re-prompt. Don't keep it because it works.
 
 ### B. Contract Check
 
 | Check | Pass / Fail |
 |---|---|
-| Path is `POST /api/auth/signup` | Pass — tested |
-| Returns **201** | Pass — new signup returned HTTP 201 |
-| Response shape: `{ id, email, fullName, role, createdAt }` | Pending — inspect a complete successful response |
-| No `passwordHash` field in response | Pass — absent from the successful response shown |
-| Role in response is always `STUDENT` | Pass — service explicitly sets `Role.STUDENT`; successful response began with this role |
+| Path is `POST /api/auth/signup` | VERIFY |
+| Returns **201** | VERIFY |
+| Response shape: `{ id, email, fullName, role, createdAt }` | VERIFY |
+| No `passwordHash` field in response | VERIFY |
+| Role in response is always `STUDENT` | VERIFY |
 
 ### C. Validation & Errors
 
 | Check | Pass / Fail |
 |---|---|
-| `@Valid` on controller parameter | Pass — verified in `AuthController` |
-| `@Email`, `@NotBlank`, `@Size` on DTO fields | Pass — verified in `SignupRequest` |
-| Duplicate email throws `DuplicateResourceException` | Pass — verified in `AuthService`; duplicate request returned HTTP 409 |
-| No new error/response wrapper class invented | Pending — verify exception classes and Git diff |
-| No stack trace or exception message leaked to client | Pass for tested validation and duplicate cases — clean JSON errors returned; handler still needs review |
+| `@Valid` on controller parameter | VERIFY |
+| `@Email`, `@NotBlank`, `@Size` on DTO fields | VERIFY |
+| Duplicate email throws `DuplicateResourceException` | VERIFY |
+| No new error/response wrapper class invented | VERIFY |
+| No stack trace or exception message leaked to client | VERIFY |
 
 ### D. Security Specifics
 
 | Check | Pass / Fail |
 |---|---|
-| Password hashed via injected `PasswordEncoder` (not `new BCryptPasswordEncoder()`) | Pass — verified in `AuthService` |
-| `SignupRequest` has no `role` field, or it is ignored | Pass — verified in the DTO; service assigns `Role.STUDENT` |
-| Duplicate check uses normalised (lowercased/trimmed) email | Pass — verified in `AuthService` |
-| AI did **not** touch `SecurityConfig`, add JWT class, or add `UserDetailsService` | Pending — `SecurityConfig` diff was empty; verify Git status/diff and JWT-related files |
+| Password hashed via injected `PasswordEncoder` (not `new BCryptPasswordEncoder()`) | VERIFY |
+| `SignupRequest` has no `role` field, or it is ignored | VERIFY |
+| Duplicate check uses normalised (lowercased/trimmed) email | VERIFY |
+| AI did **not** touch `SecurityConfig`, add JWT class, or add `UserDetailsService` | VERIFY |
 
 ### E. Understanding Questions
-*Answer in your own words (1–2 lines each). These are draft answers to review and rewrite in your own words.*
+
+*Answer in your own words (1–2 lines each).*
 
 1. Where exactly is the password hashed, and why is the same password stored as a different string for two users?
 
-   > Your answer: In `AuthService.signup()`, the injected `PasswordEncoder` hashes the password before saving the user. Secure password hashing uses a salt, so the same password can produce different stored hashes.
+   > **Your answer:** The password is hashed in `AuthService` using the injected `PasswordEncoder`. BCrypt uses a random salt, so the same password can produce different stored hashes.
 
 2. What would happen if `SignupRequest` accepted a `role` field and the AI used it?
 
-   > Your answer: A user could try to register as an ADMIN. The server must assign the role itself and must not trust a role provided by the client.
+   > **Your answer:** A user could choose their own role, potentially registering as an ADMIN and gaining unauthorised privileges.
 
 3. Which class turns `DuplicateResourceException` into a 409 response?
 
-   > Your answer: The global exception handler maps `DuplicateResourceException` to HTTP 409. Verify the exact class and method in `GlobalExceptionHandler`.
+   > **Your answer:** The existing `GlobalExceptionHandler`, if it has a handler mapping `DuplicateResourceException` to HTTP 409.
 
 ### F. Decision
 
 | File | Decision | Reason (if modified/rejected) |
 |---|---|---|
-| `AuthController.java` | Provisionally accepted | Correct signup endpoint, `@Valid`, and HTTP 201; complete response contract still to be confirmed |
-| `SignupRequest.java` | Provisionally accepted | Required email, password, and full-name validation are present |
-| `AuthService.java` | Provisionally accepted | Normalises email, checks duplicates, hashes the password, and assigns `STUDENT` |
-| `UserResponse.java` | Provisionally accepted | Earlier code shows the intended fields and excludes password hash; verify complete response |
-| `SecurityConfig.java` | No change observed | Previously checked diff was empty; verify again before final acceptance |
+| S1 implementation files | Accepted / Modified / Rejected — choose after verification | S1 was committed as `51afb11`; verify the contract and allowed-file list before finalising this review. |
 
-**Manual test results recorded:**
-- New email `student2@example.com`: HTTP 201.
-- Existing email `student1@example.com`: HTTP 409, `Email already exists`.
-- Password shorter than 8 characters: HTTP 400 with a password-size validation error.
-
-**Still to verify before closing S1:** complete response including `createdAt`, exact allowed-list compliance, exception-handler mapping, and final Git diff.
 ---
 
 ## Slice 2 — Login & JWT (S2)
@@ -88,54 +80,64 @@ List every class and method the AI produced. Tag each one:
 
 | File / Method | Tag | In Allowed List? |
 |---|---|---|
-| | | |
+| `AuthController.login()` | Controller | Yes |
+| `AuthService.login()` | Service | Yes |
+| `LoginRequest` | DTO | Yes |
+| `LoginResponse` | DTO | Yes |
+| `JwtService.generateToken(User)` | Security | Yes |
 
 ### B. Contract Check
 
 | Check | Pass / Fail |
 |---|---|
-| Path is `POST /api/auth/login` | |
-| Returns **200** | |
-| Response: `{ accessToken, tokenType: "Bearer", expiresIn }` | |
-| `expiresIn` matches configured value (not hardcoded) | |
+| Path is `POST /api/auth/login` | PASS |
+| Returns **200** | PASS |
+| Response: `{ accessToken, tokenType: "Bearer", expiresIn }` | PASS |
+| `expiresIn` matches configured value (not hardcoded) | PASS |
 
 ### C. Validation & Errors
 
 | Check | Pass / Fail |
 |---|---|
-| Same 401 message for unknown email and wrong password | |
-| No `try/catch` swallowing exceptions silently | |
+| Same 401 message for unknown email and wrong password | PASS |
+| No `try/catch` swallowing exceptions silently | PASS |
 
 ### D. Security Specifics
 
 | Check | Pass / Fail |
 |---|---|
-| JWT secret comes from `@Value`, no string literal secret | |
-| Uses jjwt 0.12 API: `.subject()`, `.claim()`, `.id()`, `.issuedAt()`, `.expiration()`, `.signWith(key)` | |
-| Rejects deprecated: `setSubject`, `setExpiration`, `signWith(SignatureAlgorithm.HS256, secret)`, `Jwts.parserBuilder()` | |
-| `jti` is a random UUID (not the user id) | |
-| No password or hash in token claims | |
-| Parse/validate method **not** written yet (that is S3) | |
+| JWT secret comes from `@Value`, no string literal secret | PASS |
+| Uses jjwt 0.12 API: `.subject()`, `.claim()`, `.id()`, `.issuedAt()`, `.expiration()`, `.signWith(key)` | PASS |
+| Rejects deprecated: `setSubject`, `setExpiration`, `signWith(SignatureAlgorithm.HS256, secret)`, `Jwts.parserBuilder()` | PASS |
+| `jti` is a random UUID (not the user id) | PASS |
+| No password or hash in token claims | PASS |
+| Parse/validate method **not** written yet (that is S3) | PASS |
 
 ### E. Understanding Questions
 
 1. Why must the error message be identical for "no such email" and "wrong password"?
 
-   > *Your answer:*
+   > **Your answer:** If the messages differ, someone could discover which email addresses have accounts. Using the same message reduces account enumeration.
 
 2. Who can read the claims inside your JWT? Who can change them?
 
-   > *Your answer:*
+   > **Your answer:** Anyone who obtains the token can decode and read its claims because a JWT is signed, not encrypted. A client cannot change the claims and produce a valid signature without the signing secret.
 
 3. What does `jti` give us that `sub` doesn't? (Think about S5.)
 
-   > *Your answer:*
+   > **Your answer:** `sub` identifies the user, while `jti` identifies one specific token. This lets us revoke an individual token without revoking every token belonging to that user.
 
 ### F. Decision
 
 | File | Decision | Reason |
 |---|---|---|
-| | | |
+| `AuthController.java` | Accepted | Login endpoint delegates to `AuthService.login()` and returns HTTP 200. |
+| `AuthService.java` | Accepted | Normalises email, checks credentials, generates the token, and returns the configured expiry. |
+| `LoginRequest.java` | Accepted | Validates email and requires a nonblank password. |
+| `LoginResponse.java` | Accepted | Returns `accessToken`, `tokenType`, and `expiresIn`. |
+| `JwtService.java` | Accepted | Generates a signed JWT using the configured Base64 secret, HS256-compatible key, email subject, role claim, UUID `jti`, issue time, and expiry. |
+
+**Verification notes:** `mvn -q -DskipTests compile` passed. Manual API tests confirmed HTTP 200 for valid credentials and HTTP 401 with the same `"Invalid email or password"` message for an unknown email and an incorrect password. Automated tests were not run successfully.
 
 ---
 
@@ -181,15 +183,15 @@ List every class and method the AI produced. Tag each one:
 
 1. Why is CSRF protection disabled here, and when would disabling it be wrong?
 
-   > *Your answer:*
+   > **Your answer:**
 
 2. Walk through what happens to a request with an expired token, step by step, until the client sees 401.
 
-   > *Your answer:*
+   > **Your answer:**
 
 3. Why don't 401/403 errors from the filter chain reach `GlobalExceptionHandler`?
 
-   > *Your answer:*
+   > **Your answer:**
 
 ### F. Decision
 
@@ -229,11 +231,11 @@ List every class and method the AI produced. Tag each one:
 
 1. A STUDENT calls `POST /api/courses`. Why does the server return 403 and not 401?
 
-   > *Your answer:*
+   > **Your answer:**
 
 2. Where does the role in the JWT come from, and can the client change it?
 
-   > *Your answer:*
+   > **Your answer:**
 
 ### F. Decision
 
@@ -264,7 +266,7 @@ List every class and method the AI produced. Tag each one:
 | Check | Pass / Fail |
 |---|---|
 | Logout adds entry to server-side denylist (not just tells client to delete token) | |
-| Denylist keyed by **jti**, not email | |
+| Denylist keyed by **`jti`**, not email | |
 | Map is `ConcurrentHashMap` (thread-safe) | |
 | Logout endpoint is NOT under `permitAll` | |
 | Filter checks the denylist and treats denylisted jti as invalid | |
@@ -274,15 +276,15 @@ List every class and method the AI produced. Tag each one:
 
 1. Why does logout need server-side state if JWT is "stateless"?
 
-   > *Your answer:*
+   > **Your answer:**
 
 2. What happens to the denylist when the server restarts? What if there are two server instances?
 
-   > *Your answer:*
+   > **Your answer:**
 
 3. Why store the expiry time with each jti?
 
-   > *Your answer:*
+   > **Your answer:**
 
 ### F. Decision
 
@@ -294,8 +296,6 @@ List every class and method the AI produced. Tag each one:
 
 ## No-AI Change Tasks
 
-
-
 **Files changed:**
 
 | File | What changed and why |
@@ -303,4 +303,5 @@ List every class and method the AI produced. Tag each one:
 | | |
 
 **Explanation (your own words):**
-> *Describe what you changed and why it works.*
+
+> Describe what you changed and why it works.
