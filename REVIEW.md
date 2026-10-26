@@ -252,9 +252,9 @@ Complete **one review entry per slice** before moving to the next.
 
 | File / Method | Tag | In Allowed List? |
 |---|---|---|
-| `AuthController.java` — logout endpoint | Modified | Yes, if listed in the S5 instructions |
-| `JwtAuthenticationFilter.java` — denylist validation | Modified | Yes, if listed in the S5 instructions |
-| `TokenDenylist.java` — in-memory denylist | Created | Yes, if listed in the S5 instructions |
+| `AuthController.java` — logout endpoint | Modified | Yes |
+| `JwtAuthenticationFilter.java` — denylist validation | Modified | Yes |
+| `TokenDenylist.java` — in-memory denylist | Created | Yes |
 
 ### B. Contract Check
 
@@ -262,7 +262,7 @@ Complete **one review entry per slice** before moving to the next.
 |---|---|
 | `POST /api/auth/logout` returns **204** | Pass — manually verified |
 | Same token returns **401** after logout | Pass — manually verified |
-| Fresh login after logout returns a new working token | Not yet verified |
+| Fresh login after logout returns a new working token | Pass — manually verified |
 
 ### D. Security Specifics
 
@@ -279,15 +279,21 @@ Complete **one review entry per slice** before moving to the next.
 
 1. Why does logout need server-side state if JWT is "stateless"?
 
-   > Write your explanation in your own words.
+   (a) A JWT normally remains valid until it expires.
+   (b) The server needs to remember which tokens have been logged out.
+   (c) The denylist lets the server reject a token even before its expiry time
 
 2. What happens to the denylist when the server restarts? What if there are two server instances?
 
-   > Write your explanation in your own words.
+   (a) The denylist uses an in-memory map, so its entries are lost when the server restarts.
+   (b) If there are two server instances, each has its own map.
+   (c) A shared database or another shared storage system would be needed to keep revoked tokens consistent between instances.
 
 3. Why store the expiry time with each jti?
 
-   > Write your explanation in your own words.
+   (a) The expiry time tells the server how long a revoked token needs to stay in the denylist.
+   (b) After the token expires, it no longer needs to be blocked.
+   (c) Removing expired entries saves memory.
 
 ### F. Decision
 
