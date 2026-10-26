@@ -8,66 +8,78 @@ Complete **one review entry per slice** before moving to the next.
 ## Slice 1 — Signup (S1)
 
 ### A. Bucket Check
-List every class and method the AI produced. Tag each one:  
+List every class and method the AI produced. Tag each one:
 `Controller` / `Service` / `Repository` / `DTO` / `Security` / `Config` / `Exception`
 
 | File / Method | Tag | In Allowed List? |
 |---|---|---|
-| | | |
+| `AuthController.signup()` | Controller | Verify against assignment allowed list |
+| `AuthService.signup()` | Service | Verify against assignment allowed list |
+| `SignupRequest` | DTO | Verify against assignment allowed list |
+| `UserResponse` | DTO | Verify against assignment allowed list |
 
-> **Important:** Anything **not** in the allowed list → **reject, re-prompt**. Don't keep it because it works.
+> Verify each file against the assignment's allowed list before final acceptance.
 
 ### B. Contract Check
-Compare against API contract row A1 line by line.
 
 | Check | Pass / Fail |
 |---|---|
-| Path is `POST /api/auth/signup` | |
-| Returns **201** | |
-| Response shape: `{ id, email, fullName, role, createdAt }` | |
-| No `passwordHash` field in response | |
-| Role in response is always `STUDENT` | |
+| Path is `POST /api/auth/signup` | Pass — tested |
+| Returns **201** | Pass — new signup returned HTTP 201 |
+| Response shape: `{ id, email, fullName, role, createdAt }` | Pending — inspect a complete successful response |
+| No `passwordHash` field in response | Pass — absent from the successful response shown |
+| Role in response is always `STUDENT` | Pass — service explicitly sets `Role.STUDENT`; successful response began with this role |
 
 ### C. Validation & Errors
 
 | Check | Pass / Fail |
 |---|---|
-| `@Valid` on controller parameter | |
-| `@Email`, `@NotBlank`, `@Size` on DTO fields | |
-| Duplicate email throws `DuplicateResourceException` | |
-| No new error/response wrapper class invented | |
-| No stack trace or exception message leaked to client | |
+| `@Valid` on controller parameter | Pass — verified in `AuthController` |
+| `@Email`, `@NotBlank`, `@Size` on DTO fields | Pass — verified in `SignupRequest` |
+| Duplicate email throws `DuplicateResourceException` | Pass — verified in `AuthService`; duplicate request returned HTTP 409 |
+| No new error/response wrapper class invented | Pending — verify exception classes and Git diff |
+| No stack trace or exception message leaked to client | Pass for tested validation and duplicate cases — clean JSON errors returned; handler still needs review |
 
 ### D. Security Specifics
 
 | Check | Pass / Fail |
 |---|---|
-| Password hashed via injected `PasswordEncoder` (not `new BCryptPasswordEncoder()`) | |
-| `SignupRequest` has no `role` field, or it is ignored | |
-| Duplicate check uses normalised (lowercased/trimmed) email | |
-| AI did **not** touch `SecurityConfig`, add JWT class, or add `UserDetailsService` | |
+| Password hashed via injected `PasswordEncoder` (not `new BCryptPasswordEncoder()`) | Pass — verified in `AuthService` |
+| `SignupRequest` has no `role` field, or it is ignored | Pass — verified in the DTO; service assigns `Role.STUDENT` |
+| Duplicate check uses normalised (lowercased/trimmed) email | Pass — verified in `AuthService` |
+| AI did **not** touch `SecurityConfig`, add JWT class, or add `UserDetailsService` | Pending — `SecurityConfig` diff was empty; verify Git status/diff and JWT-related files |
 
 ### E. Understanding Questions
-*Answer in your own words (1–2 lines each)*
+*Answer in your own words (1–2 lines each). These are draft answers to review and rewrite in your own words.*
 
 1. Where exactly is the password hashed, and why is the same password stored as a different string for two users?
 
-   > *Your answer:*
+   > Your answer: In `AuthService.signup()`, the injected `PasswordEncoder` hashes the password before saving the user. Secure password hashing uses a salt, so the same password can produce different stored hashes.
 
 2. What would happen if `SignupRequest` accepted a `role` field and the AI used it?
 
-   > *Your answer:*
+   > Your answer: A user could try to register as an ADMIN. The server must assign the role itself and must not trust a role provided by the client.
 
 3. Which class turns `DuplicateResourceException` into a 409 response?
 
-   > *Your answer:*
+   > Your answer: The global exception handler maps `DuplicateResourceException` to HTTP 409. Verify the exact class and method in `GlobalExceptionHandler`.
 
 ### F. Decision
 
 | File | Decision | Reason (if modified/rejected) |
 |---|---|---|
-| | Accepted / Modified / Rejected | |
+| `AuthController.java` | Provisionally accepted | Correct signup endpoint, `@Valid`, and HTTP 201; complete response contract still to be confirmed |
+| `SignupRequest.java` | Provisionally accepted | Required email, password, and full-name validation are present |
+| `AuthService.java` | Provisionally accepted | Normalises email, checks duplicates, hashes the password, and assigns `STUDENT` |
+| `UserResponse.java` | Provisionally accepted | Earlier code shows the intended fields and excludes password hash; verify complete response |
+| `SecurityConfig.java` | No change observed | Previously checked diff was empty; verify again before final acceptance |
 
+**Manual test results recorded:**
+- New email `student2@example.com`: HTTP 201.
+- Existing email `student1@example.com`: HTTP 409, `Email already exists`.
+- Password shorter than 8 characters: HTTP 400 with a password-size validation error.
+
+**Still to verify before closing S1:** complete response including `createdAt`, exact allowed-list compliance, exception-handler mapping, and final Git diff.
 ---
 
 ## Slice 2 — Login & JWT (S2)

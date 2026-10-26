@@ -1,5 +1,5 @@
 package com.esd.lab2.controller;
-
+import org.springframework.http.HttpStatus;
 import com.esd.lab2.dto.SignupRequest;
 import com.esd.lab2.dto.UserResponse;
 import com.esd.lab2.service.AuthService;
@@ -32,7 +32,8 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(@Valid @RequestBody SignupRequest request) {
         // TODO: call authService.signup(request) and return 201 with the result
-        return null;
+        return ResponseEntity.status(HttpStatus.CREATED)
+	        .body(authService.signup(request));
     }
 
     // S2: login endpoint will be added here by AI

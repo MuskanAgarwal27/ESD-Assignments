@@ -1,5 +1,6 @@
-package com.esd.lab2.service;
 
+package com.esd.lab2.service;
+import java.util.Locale;
 import com.esd.lab2.dto.SignupRequest;
 import com.esd.lab2.dto.UserResponse;
 import com.esd.lab2.entity.Role;
@@ -40,24 +41,36 @@ public class AuthService {
      */
     public UserResponse signup(SignupRequest request) {
         // TODO 1: normalise the email (trim + lowercase)
-        String email = null;
+        String email = request.email().trim().toLowerCase(Locale.ROOT);
 
         // TODO 2: check for duplicate email and throw DuplicateResourceException if found
-
+	if (userRepository.existsByEmail(email)) {
+	        throw new DuplicateResourceException("Email already exists");
+    	}
         // TODO 3: hash the password using the injected passwordEncoder bean
-        String hashedPassword = null;
+        String hashedPassword = passwordEncoder.encode(request.password());
 
         // TODO 4: build and save the User entity (role = Role.STUDENT always)
-        User user = null;
+        User user = new User();
+        user.setEmail(email);
+        user.setPasswordHash(hashedPassword);
+	user.setFullName(request.fullName());
+        user.setRole(Role.STUDENT);
+        user = userRepository.save(user);
 
         // TODO 5: return a UserResponse — never return the User entity directly
-        return null;
+        return toResponse(user);
     }
 
     // ── helper ────────────────────────────────────────────────────────────────
 
     private UserResponse toResponse(User user) {
-        // TODO: map User entity fields to UserResponse record
-        return null;
-    }
+   	 return new UserResponse(
+            user.getId(),
+            user.getEmail(),
+            user.getFullName(),
+            user.getRole(),
+            user.getCreatedAt()
+    );
+}
 }
