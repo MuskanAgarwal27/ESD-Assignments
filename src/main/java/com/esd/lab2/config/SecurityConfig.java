@@ -50,10 +50,10 @@ public class SecurityConfig {
                     "/api/auth/signup",
                     "/api/auth/login"
                 ).permitAll()
-                .requestMatchers(
+                /*.requestMatchers(
                     org.springframework.http.HttpMethod.GET,
                     "/api/courses"
-                ).permitAll()
+                ).permitAll()*/
 		.requestMatchers(
                     org.springframework.http.HttpMethod.POST,
                     "/api/courses"

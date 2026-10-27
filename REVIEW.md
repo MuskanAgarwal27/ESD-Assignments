@@ -313,8 +313,12 @@ Complete this section independently after closing AI tools, as required by the l
 
 | File | What changed and why |
 |---|---|
-| Fill in after completing the required changes | |
+| `src/main/java/com/esd/lab2/config/SecurityConfig.java` | Modified the security configuration for API access and authentication rules. |
+| `src/main/java/com/esd/lab2/controller/UserController.java` | Modified the user controller to handle user-related API requests. |
+| `src/main/java/com/esd/lab2/dto/SignupRequest.java` | Modified the signup request DTO to handle signup input and validation. |
+| `src/main/java/com/esd/lab2/dto/UpdateProfileRequest.java` | Added a DTO to represent profile update input. |
+| `src/main/resources/application.yml` | Updated application configuration, including JWT expiration and environment-based credentials. |
 
 **Explanation (your own words):**
 
-> Describe what you changed and why it works.
+> I updated the application configuration, security rules, and user-related request handling. I also added a request DTO for profile updates. I verified that the project compiles successfully and that admin login and the authenticated `/api/users/me` endpoint return HTTP 200. Maven reported no automated tests to run, so these checks confirm only the functionality I tested manually.

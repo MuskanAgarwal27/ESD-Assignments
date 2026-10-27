@@ -21,8 +21,9 @@ public record SignupRequest(
 	String email,
 
         // TODO: add @NotBlank and @Size(min = 8, max = 64) annotations
-	@NotBlank        
+	@NotBlank
 	@Size(min = 8, max = 64)
+	@Pattern(regexp = ".*\\d.*", message = "Password must contain at least one digit")
 	String password,
 
         // TODO: add @NotBlank and @Size(max = 100) annotations
