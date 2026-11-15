@@ -22,7 +22,10 @@ export default function App() {
   return (
     <main className="app">
       <Header />
-      <Matrix matrix={matrix} onIncrement={increment} />
+      <div className="board">
+        <Matrix matrix={matrix} onIncrement={increment} />
+        <Stats matrix={matrix} />
+      </div>
     </main>
   );
 }
