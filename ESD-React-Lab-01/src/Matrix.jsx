@@ -14,5 +14,20 @@
 import Cell from "./Cell.jsx";
 
 export default function Matrix({ matrix, onIncrement }) {
-  throw new Error("TODO");
+  // The cells have no id of their own and never move, so the position is the key.
+  return (
+    <table className="matrix">
+      <tbody>
+        {matrix.map((rowValues, row) => (
+          <tr key={row}>
+            {rowValues.map((value, col) => (
+              <td key={col}>
+                <Cell row={row} col={col} value={value} />
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
 }
