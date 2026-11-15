@@ -22,7 +22,7 @@ export default function Matrix({ matrix, onIncrement }) {
           <tr key={row}>
             {rowValues.map((value, col) => (
               <td key={col}>
-                <Cell row={row} col={col} value={value} />
+                <Cell row={row} col={col} value={value} onClick={() => onIncrement(row, col)} />
               </td>
             ))}
           </tr>
