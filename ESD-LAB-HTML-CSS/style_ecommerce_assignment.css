@@ -1,0 +1,67 @@
+/* Design tokens */
+:root {
+}
+
+
+/* Reset & base */
+
+
+/* Utilities */
+.visually-hidden {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.skip-link {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 100;
+    padding: 0.5rem 1rem;
+    background: #ffffff;
+    color: #0f1111;
+    border-radius: 0.25rem;
+    transform: translateY(-200%);
+}
+
+.skip-link:focus {
+    transform: none;
+}
+
+
+/* SECTION 1 - Top belt */
+.nav-belt {
+}
+
+
+/* SECTION 2 - Secondary navigation */
+.nav-main {
+}
+
+
+/* SECTION 3 - Hero banner */
+.hero {
+}
+
+
+/* SECTION 4 - Page content */
+.page-content {
+}
+
+
+/* SECTION 5 - Footer 1: footer nav */
+.footer-nav {
+}
+
+
+/* SECTION 6 - Footer 2: services and legal */
+.footer-services {
+}
+
+
+/* Responsive overrides */
